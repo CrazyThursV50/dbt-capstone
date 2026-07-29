@@ -82,13 +82,14 @@ The official curated Jaffle Shop dataset ships as 6 CSVs in `seeds/`. Running `d
                 - store_revenue_vs_profit
                 - perishable_profit_contribution
                 - margin_pct_by_product_type
+                - check_lifetime_value (sanity check on dim_customers)
 ```
 
 To explore the live lineage graph interactively:
 
 ```bash
 cd dbt-capstone
-dbt docs generate
+dbt docs generate          # dbt Core (on dbt Fusion: dbt compile --write-catalog)
 dbt docs serve --port 8001
 ```
 
@@ -290,9 +291,11 @@ dbt seed
 # 4. Build all models + run all tests (11 models, 32 tests)
 dbt build
 
-# 5. View lineage / model docs
+# 5. View lineage / model docs (dbt Core)
 dbt docs generate
 dbt docs serve --port 8001
+# On the dbt Fusion engine, write the catalog instead:
+#   dbt compile --write-catalog   # produces target/catalog.json + manifest.json
 
 # 6. Re-run any insight on demand
 dbt compile --select top_products_by_profit
