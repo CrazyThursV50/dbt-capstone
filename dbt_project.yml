@@ -1,0 +1,31 @@
+flags:
+  static_analysis: strict
+
+name: 'dbt_capstone'
+version: '1.0.0'
+config-version: 2
+
+profile: 'dbt_capstone'
+
+model-paths: ["models"]
+analysis-paths: ["analysis"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+seeds:
+  dbt_capstone:
+    # Builds the raw Jaffle Shop CSVs into '<target_schema>_raw_jaffle_shop'
+    +schema: raw_jaffle_shop
+
+models:
+  dbt_capstone:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
