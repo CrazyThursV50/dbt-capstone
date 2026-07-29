@@ -158,7 +158,7 @@ FK columns are tested to point at valid PKs in their dimension:
           field: product_id
 ```
 
-`fct_sales_line` carries 4 such tests (product_id / store_id / order_id, plus customer_id via fct_orders). If a future CSV reload introduced an unknown SKU, this test would fail before the analysis ran.
+`fct_sales_line` carries 3 such tests (order_id / product_id / store_id); customer integrity is tested one level up, on `fct_orders.customer_id` → `dim_customers`. If a future CSV reload introduced an unknown SKU, this test would fail before the analysis ran.
 
 ### 5.3 Domain rules (singular tests in `tests/`)
 
@@ -220,7 +220,7 @@ Computing **cost-weighted perishable share** per SKU (perishable supply cost ÷ 
 | **Jaffle** | 5 | **87.2%** | 76.0% – 92.1% |
 | **Beverage** | 5 | **68.5%** | 52.4% – 82.9% |
 
-Jaffles average $11.75 of perishable cost per $13.20 total cost; beverages average $4.06 per $5.56. The most perishable jaffle is **JAF-003 at 92.1%** — almost all of its supply cost is in spoilage-exposed inputs.
+Summed across their five SKUs, jaffles carry $11.75 of perishable cost out of $13.20 total per-unit cost (≈ $2.35 of $2.64 per SKU on average); beverages carry $4.06 of $5.56 (≈ $0.81 of $1.11 per SKU). The most perishable jaffle is **JAF-003 at 92.1%** — almost all of its supply cost is in spoilage-exposed inputs.
 
 ### Insight 4 — Beverages = volume engine, jaffles = unit-margin engine
 
@@ -241,7 +241,7 @@ Each next step maps to one of the insights above.
 |---|---|---|---|
 | 1 | **Double down on BEV-004 promotion** (top-shelf placement, combo offers, marketing spend) | BEV-004 alone is 19.2% of total profit (Insight 1) | Even a 10% lift translates to ~$104 of marginal profit per 16 days (~$2.4k/year extrapolated) |
 | 2 | **Accelerate the Brooklyn launch (2017-03 opening)** and instrument per-store profit reporting from day 1 | 100% Philadelphia concentration is unsustainable (Insight 2) | Diversifies geographic risk; `fct_sales_line.store_id` and `dim_stores` are already wired in — onboarding is a data-load problem, not a modeling problem |
-| 3 | **Tighten jaffle ingredient sourcing & shelf life** (renegotiate dairy/produce contracts, FEFO rotation, demand forecasting on jaffle volume) | Jaffles are 87% perishable cost (Insight 3) — wastage directly hits the highest-cost-density supplies | Even a 5-point cut in jaffle spoilage saves ~$0.66 per unit; at scale this protects margin in the high-perishable category |
+| 3 | **Tighten jaffle ingredient sourcing & shelf life** (renegotiate dairy/produce contracts, FEFO rotation, demand forecasting on jaffle volume) | Jaffles are 87% perishable cost (Insight 3) — wastage directly hits the highest-cost-density supplies | At an average jaffle cost of $2.68/unit, a 5-point cut in perishable share saves ~$0.13 per unit sold; at scale this protects margin in the high-perishable category |
 | 4 | **Position jaffles as a high-attach upsell to beverage orders**, not as standalone volume drivers | Beverages drive 80% of volume; jaffles drive 2× per-unit dollar margin (Insight 4) | Increases jaffle attach rate without forcing them to win on volume — leverages existing beverage traffic |
 
 ---
