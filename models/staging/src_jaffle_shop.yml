@@ -1,0 +1,25 @@
+sources:
+  - name: jaffle_shop
+    description: >
+      Curated Jaffle Shop dataset, loaded from the CSVs in seeds/ via `dbt seed`.
+      Static snapshot — no freshness checks are configured.
+    schema: "{{ target.schema }}_raw_jaffle_shop"
+    tables:
+      - name: customers
+        description: Raw customer data
+        columns:
+          - name: id
+            description: Primary key — UUID of the customer.
+            data_tests:
+              - unique
+              - not_null
+      - name: orders
+        description: One record per order. Source of subtotal / tax_paid / order_total (in cents) and the store + customer linkage.
+      - name: items
+        description: One record per item ordered (line item of an order)
+      - name: products
+        description: One record per SKU sold across all stores
+      - name: stores
+        description: One record per physical store location
+      - name: supplies
+        description: One record per supply per product SKU

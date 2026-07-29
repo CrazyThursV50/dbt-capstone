@@ -1,0 +1,90 @@
+models:
+  - name: stg_jaffle_shop__customers
+    description: One unique customer per row. customer_id is a UUID from the source.
+    columns:
+      - name: customer_id
+        description: Primary key — UUID of the customer.
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_name
+        description: Full name as captured at signup.
+        
+  - name: stg_jaffle_shop__orders
+    description: One row per order. Monetary fields (subtotal / tax_paid / order_total) are converted from cents to dollars via cents_to_dollars().
+    columns:
+      - name: order_id
+        description: Primary key — UUID of the order.
+        data_tests:
+          - unique
+          - not_null
+      
+      # - name: status
+      #   description: Order status (e.g. 'completed', 'cancelled', etc.)
+      #   data_tests:
+      #     - accepted_values:
+      #         name: accepted_values_stg_orders_status
+      #         arguments:
+      #           values: ['completed', 'shipped', 'placed', 'returned']
+          
+      - name: customer_id
+        description: FK to stg_jaffle_shop__customers.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_jaffle_shop__customers')
+                field: customer_id
+      - name: store_id
+        description: FK to the store where the order was placed.
+      - name: ordered_at
+        description: Timestamp the order was placed (business event time).
+      - name: order_total
+        description: Total order amount in USD (= subtotal + tax_paid).
+
+  - name: stg_jaffle_shop__items
+    description: One row per line item in an order (each row = 1 unit sold).
+    columns:
+      - name: order_item_id
+        description: Primary key — UUID of the line item.
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: FK to orders.
+      - name: product_id
+        description: FK to products (= SKU).
+
+  - name: stg_jaffle_shop__products
+    description: One row per SKU sold across stores. Price is in USD.
+    columns:
+      - name: product_id
+        description: Primary key — SKU.
+        data_tests:
+          - unique
+          - not_null
+      - name: product_price
+        description: Selling price per unit in USD.
+
+  - name: stg_jaffle_shop__stores
+    description: One row per physical store location.
+    columns:
+      - name: store_id
+        description: Primary key — UUID of the store.
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_jaffle_shop__supplies
+    description: One row per supply per SKU. A single SKU may have multiple supplies (e.g. a jaffle needs both knife and fork). supply_uuid is a surrogate key over (id, sku).
+    columns:
+      - name: supply_uuid
+        description: Surrogate primary key over (id, sku).
+        data_tests:
+          - unique
+          - not_null
+      - name: product_id
+        description: FK to products (= SKU).
+      - name: supply_cost
+        description: Supply cost per unit in USD.
+      - name: is_perishable_supply
+        description: True if this supply is perishable.

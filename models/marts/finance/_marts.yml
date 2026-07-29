@@ -1,0 +1,124 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: |
+      Order-grain fact table. One row per order. Sources order-level monetary fields
+      (subtotal, tax_paid, order_total in USD) directly from stg_jaffle_shop__orders.
+      Stripe payments are not used here — the new Jaffle Shop schema stores order totals
+      natively, removing the need to aggregate payments for revenue calculation.
+    columns:
+      - name: order_id
+        description: Primary key — UUID of the order.
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: FK to dim_customers.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
+      - name: store_id
+        description: FK to dim_stores.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_stores')
+                field: store_id
+      - name: order_total
+        description: Total order amount in USD (subtotal + tax_paid).
+
+  - name: dim_products
+    description: |
+      Product dimension with profitability fields pre-computed.
+      unit_cost is summed across all supplies attached to the SKU (a single product
+      may have multiple supplies, e.g. a jaffle needs both knife and fork cutlery).
+      gross_margin and margin_pct enable direct ranking of products by profitability.
+    columns:
+      - name: product_id
+        description: Primary key — SKU like JAF-001 (jaffle) or BEV-001 (beverage).
+        data_tests:
+          - unique
+          - not_null
+      - name: product_price
+        description: Selling price per unit in USD.
+      - name: unit_cost
+        description: Total supply cost per unit in USD (summed across all supplies of the SKU).
+      - name: gross_margin
+        description: product_price - unit_cost. Profit per unit sold.
+      - name: margin_pct
+        description: gross_margin / product_price. Margin percentage.
+      - name: has_perishable_supply
+        description: True if any supply attached to this product is perishable.
+
+  - name: dim_stores
+    description: |
+      Store dimension. One row per physical store location.
+      store_age_years derived from opened_date for tenure analysis.
+    columns:
+      - name: store_id
+        description: Primary key — UUID of the store.
+        data_tests:
+          - unique
+          - not_null
+      - name: store_name
+        description: City name of the store (Philadelphia, Brooklyn, etc.).
+      - name: tax_rate
+        description: Local sales tax rate applied at the store.
+      - name: opened_date
+        description: Date the store first opened for business.
+
+  - name: fct_sales_line
+    description: |
+      Line-item-grain fact table. One row per item sold (each row in raw_items = 1 unit sold).
+      Denormalizes product_type / is_food_item / has_perishable_supply from dim_products
+      to make analyses (group-by these dimensions) one-liners.
+      This is the central table for all profitability analyses — top SKUs, store-level
+      profit ranking, perishable contribution, type-level margin %.
+    columns:
+      - name: order_item_id
+        description: Primary key — UUID of the line item (= raw_items.id).
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: FK to fct_orders.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+      - name: product_id
+        description: FK to dim_products.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_id
+      - name: store_id
+        description: FK to dim_stores (denormalized from orders).
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_stores')
+                field: store_id
+      - name: gross_margin_per_unit
+        description: Profit per unit (revenue_per_unit - cost_per_unit) in USD.
+
+  - name: dim_customers
+    description: |
+      Customer dimension. One row per customer with lifetime aggregates
+      (number_of_orders, lifetime_value) sourced from fct_orders.
+      Note: dim_customers is materialized under models/marts/marketing/ but
+      tested here for consolidated marts-layer test coverage.
+    columns:
+      - name: customer_id
+        description: Primary key — UUID of the customer.
+        data_tests:
+          - unique
+          - not_null
+      - name: lifetime_value
+        description: Sum of order_total across all orders by this customer (USD).

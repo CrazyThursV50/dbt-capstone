@@ -1,0 +1,29 @@
+version: 2
+
+# The 6 official curated Jaffle Shop CSVs. Each seed is aliased so the loaded
+# table name matches the source definitions in models/staging/src_jaffle_shop.yml.
+seeds:
+  - name: raw_customers
+    description: One record per person who has purchased one or more items
+    config:
+      alias: customers
+  - name: raw_orders
+    description: One record per order (consisting of one or more order items)
+    config:
+      alias: orders
+  - name: raw_items
+    description: One record per item ordered (line item of an order)
+    config:
+      alias: items
+  - name: raw_products
+    description: One record per SKU sold across all stores
+    config:
+      alias: products
+  - name: raw_stores
+    description: One record per physical store location
+    config:
+      alias: stores
+  - name: raw_supplies
+    description: One record per supply per product SKU
+    config:
+      alias: supplies
