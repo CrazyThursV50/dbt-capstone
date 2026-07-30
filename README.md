@@ -58,17 +58,7 @@ Six sources feed six staging views (one per source), which feed three dimensions
 
 ![dbt lineage graph for this project](docs/lineage.png)
 
-*Lineage graph from `dbt docs` — sources on the left (SRC), staging and marts models in the middle (MDL), analyses on the right (ANA).*
-
-To explore the lineage graph yourself:
-
-```bash
-cd dbt-capstone
-dbt docs generate          # dbt Core (on dbt Fusion: dbt compile --write-catalog)
-dbt docs serve --port 8001
-```
-
-Then open http://localhost:8001 in a browser.
+*Lineage graph from the dbt docs viewer — sources on the left (SRC), staging and marts models in the middle (MDL), analyses on the right (ANA).*
 
 ---
 
@@ -265,11 +255,9 @@ dbt seed
 # 4. Build all models + run all tests (11 models, 32 tests)
 dbt build
 
-# 5. View lineage / model docs (dbt Core)
-dbt docs generate
-dbt docs serve --port 8001
-# On the dbt Fusion engine, write the catalog instead:
-#   dbt compile --write-catalog   # produces target/catalog.json + manifest.json
+# 5. Write the docs artifacts (this project is built with the dbt Fusion engine)
+dbt compile --write-catalog   # produces target/catalog.json + manifest.json
+# The lineage graph pictured above comes from these artifacts.
 
 # 6. Re-run any insight on demand
 dbt compile --select top_products_by_profit
