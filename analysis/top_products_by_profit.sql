@@ -1,6 +1,8 @@
--- Insight #1: Which SKUs drive the most total profit?
+-- Insight #1: Which SKUs contributed the most total gross margin?
 -- Group fct_sales_line by product, sum gross_margin_per_unit across all units sold.
--- Returns top 10 products by total profit contribution + their share of overall profit.
+-- Returns the top 10 products by gross margin contribution + their share of the total.
+-- Note: the total_profit / pct_of_total_profit column names below mean gross margin
+-- contribution (price - supply cost), not net profit. See README for the definition.
 
 with sales as (
     select * from {{ ref('fct_sales_line') }}

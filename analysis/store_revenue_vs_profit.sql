@@ -1,8 +1,9 @@
--- Insight #2: Store landscape & revenue concentration.
--- The 16-day data window captures Philadelphia's first two weeks of operation
--- when it was the only open store. The other 5 stores in the catalog opened
--- months/years later. This query shows the resulting 100% revenue concentration
--- and lists planned-but-not-yet-operational stores for strategic context.
+-- Data coverage check: which stores have transactions in the 16-day window?
+-- The window captures Philadelphia's first two weeks of operation, when it was
+-- the only open store; the other 5 stores in the catalog opened months or years
+-- later. This query documents that coverage limitation. It is NOT a store
+-- performance comparison — with only one store trading, no such comparison is
+-- possible from this dataset.
 
 with stores as (
     select * from {{ ref('dim_stores') }}

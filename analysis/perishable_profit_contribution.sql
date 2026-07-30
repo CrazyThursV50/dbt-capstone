@@ -1,8 +1,10 @@
--- Insight #3: How much of each product's COST is perishable supplies?
+-- Insight #2: How much of each product's COST is perishable supplies?
 -- Every product has at least one perishable supply (eggs, milk, etc.), so a
--- boolean flag is uninformative. Instead, compute the cost-weighted perishable
--- share per product, then aggregate by product_type. Jaffles vs beverages reveal
--- very different spoilage exposure profiles, driving inventory management priorities.
+-- boolean flag is uninformative. Instead, compute the perishable share of supply
+-- cost per SKU, then take an UNWEIGHTED average across the SKUs in each
+-- product_type (avg_perishable_cost_pct below is a per-SKU average, not weighted
+-- by units sold). This measures recipe-level cost exposure only: the dataset has
+-- no inventory or waste records, so it cannot show actual spoilage.
 
 with supplies as (
     select * from {{ ref('stg_jaffle_shop__supplies') }}

@@ -1,6 +1,7 @@
--- Insight #4: How do margin profiles differ between jaffles and beverages?
+-- Insight #3: How do margin profiles differ between jaffles and beverages?
 -- jaffle vs beverage have very different cost structures (food prep vs drinks);
--- comparing margin_pct and unit-level profit guides product mix decisions.
+-- comparing margin % and unit-level gross margin guides product mix decisions.
+-- avg_margin_pct = avg(gross_margin_per_unit) / avg(revenue_per_unit) per type.
 
 with sales as (
     select * from {{ ref('fct_sales_line') }}
