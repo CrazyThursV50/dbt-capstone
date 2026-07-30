@@ -32,10 +32,10 @@ models:
 
   - name: dim_products
     description: |
-      Product dimension with profitability fields pre-computed.
+      Product dimension with per-unit economics pre-computed.
       unit_cost is summed across all supplies attached to the SKU (a single product
       may have multiple supplies, e.g. a jaffle needs both knife and fork cutlery).
-      gross_margin and margin_pct enable direct ranking of products by profitability.
+      gross_margin and margin_pct enable direct ranking of products by gross margin contribution.
     columns:
       - name: product_id
         description: Primary key — SKU like JAF-001 (jaffle) or BEV-001 (beverage).
@@ -47,7 +47,10 @@ models:
       - name: unit_cost
         description: Total supply cost per unit in USD (summed across all supplies of the SKU).
       - name: gross_margin
-        description: product_price - unit_cost. Profit per unit sold.
+        description: >
+          product_price - unit_cost: gross margin contribution per unit sold.
+          Supply cost only — it excludes labor, rent, waste and other operating
+          expenses, so it is not net profit.
       - name: margin_pct
         description: gross_margin / product_price. Margin percentage.
       - name: has_perishable_supply
@@ -56,7 +59,8 @@ models:
   - name: dim_stores
     description: |
       Store dimension. One row per physical store location.
-      store_age_years derived from opened_date for tenure analysis.
+      Kept in the project so store-level analysis becomes possible once locations
+      other than Philadelphia have transactions.
     columns:
       - name: store_id
         description: Primary key — UUID of the store.
@@ -75,8 +79,8 @@ models:
       Line-item-grain fact table. One row per item sold (each row in raw_items = 1 unit sold).
       Denormalizes product_type / is_food_item / has_perishable_supply from dim_products
       to make analyses (group-by these dimensions) one-liners.
-      This is the central table for all profitability analyses — top SKUs, store-level
-      profit ranking, perishable contribution, type-level margin %.
+      Three of the five analyses group this table: top SKUs by gross margin
+      contribution, type-level unit economics, and per-store data coverage.
     columns:
       - name: order_item_id
         description: Primary key — UUID of the line item (= raw_items.id).
@@ -106,7 +110,9 @@ models:
                 to: ref('dim_stores')
                 field: store_id
       - name: gross_margin_per_unit
-        description: Profit per unit (revenue_per_unit - cost_per_unit) in USD.
+        description: >
+          Gross margin contribution per unit (revenue_per_unit - cost_per_unit) in USD.
+          Not net profit: no labor, rent, waste or other operating costs are included.
 
   - name: dim_customers
     description: |

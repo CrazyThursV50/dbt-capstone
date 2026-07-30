@@ -54,7 +54,7 @@ The curated Jaffle Shop dataset ships as 6 CSVs in `seeds/`. Running `dbt seed` 
 
 ## 3. DAG / Model Flow
 
-Six sources feed six staging views (one per source), which feed three dimensions and two facts in the marts layer. `fct_sales_line` is the table every analysis queries: it is one row per item sold, carrying revenue, supply cost, and gross margin per unit, with product type and store denormalized in. The five files in `analysis/` sit on top and are compiled and run on demand.
+Six sources feed six staging views (one per source), which feed three dimensions and two facts in the marts layer. `fct_sales_line` is the main analytical table: one row per item sold, carrying revenue, supply cost, and gross margin per unit, with product type and store denormalized in. The five files in `analysis/` sit on top and are compiled and run on demand — three of them group `fct_sales_line`, one reads recipe costs from `stg_jaffle_shop__supplies` and `dim_products`, and one is a sanity check on `dim_customers`.
 
 ![dbt lineage graph for this project](docs/lineage.png)
 
@@ -83,7 +83,7 @@ Six sources feed six staging views (one per source), which feed three dimensions
 | `dim_stores` | Store dimension. Kept in the project so store-level analysis becomes possible once other locations have transactions. | One row per store (6 rows) | store_id (PK), store_name, tax_rate, opened_date |
 | `dim_customers` | Customer dimension with lifetime aggregates from fct_orders. | One row per customer (128 rows) | customer_id (PK), customer_name, first_order_date, most_recent_order_date, number_of_orders, lifetime_value |
 | `fct_orders` | Order-grain fact table. Pass-through of stg orders with monetary fields in USD. | One row per order (686 rows) | order_id (PK), customer_id, store_id, ordered_at, subtotal, tax_paid, order_total |
-| `fct_sales_line` | The central analytics table. Joins items × dim_products × orders and denormalizes product_type / is_food_item / has_perishable_supply for query convenience. Every analysis in this project groups this one table. | One row per line item (997 rows) | order_item_id (PK), order_id, product_id, store_id, customer_id, revenue_per_unit, cost_per_unit, gross_margin_per_unit |
+| `fct_sales_line` | The central analytics table. Joins items × dim_products × orders and denormalizes product_type / is_food_item / has_perishable_supply for query convenience. Three of the five analyses group this one table. | One row per line item (997 rows) | order_item_id (PK), order_id, product_id, store_id, customer_id, revenue_per_unit, cost_per_unit, gross_margin_per_unit |
 
 ---
 
@@ -255,9 +255,8 @@ dbt seed
 # 4. Build all models + run all tests (11 models, 32 tests)
 dbt build
 
-# 5. Write the docs artifacts (this project is built with the dbt Fusion engine)
-dbt compile --write-catalog   # produces target/catalog.json + manifest.json
-# The lineage graph pictured above comes from these artifacts.
+# 5. Compile the project (this project is built with the dbt Fusion engine)
+dbt compile   # writes target/manifest.json — the artifact the lineage graph above is built from
 
 # 6. Re-run any insight on demand
 dbt compile --select top_products_by_profit
